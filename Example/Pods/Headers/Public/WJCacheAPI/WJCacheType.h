@@ -1,0 +1,1 @@
+../../../WJCacheAPI/Classes/WJCacheType.h

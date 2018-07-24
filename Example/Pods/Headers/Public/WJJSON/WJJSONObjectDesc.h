@@ -1,0 +1,1 @@
+../../../WJJSON/Classes/WJJSONObjectDesc.h

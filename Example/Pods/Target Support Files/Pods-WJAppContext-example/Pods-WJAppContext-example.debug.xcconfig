@@ -1,0 +1,8 @@
+GCC_PREPROCESSOR_DEFINITIONS = $(inherited) COCOAPODS=1
+HEADER_SEARCH_PATHS = $(inherited) "${PODS_ROOT}/Headers/Public" "${PODS_ROOT}/Headers/Public/UICKeyChainStore" "${PODS_ROOT}/Headers/Public/WJCacheAPI" "${PODS_ROOT}/Headers/Public/WJCacheKeychain" "${PODS_ROOT}/Headers/Public/WJCommon" "${PODS_ROOT}/Headers/Public/WJConfig" "${PODS_ROOT}/Headers/Public/WJJSON" "${PODS_ROOT}/Headers/Public/WJLoggingAPI"
+LIBRARY_SEARCH_PATHS = $(inherited) "$PODS_CONFIGURATION_BUILD_DIR/UICKeyChainStore" "$PODS_CONFIGURATION_BUILD_DIR/WJCacheAPI" "$PODS_CONFIGURATION_BUILD_DIR/WJCacheKeychain" "$PODS_CONFIGURATION_BUILD_DIR/WJCommon" "$PODS_CONFIGURATION_BUILD_DIR/WJConfig" "$PODS_CONFIGURATION_BUILD_DIR/WJJSON" "$PODS_CONFIGURATION_BUILD_DIR/WJLoggingAPI"
+OTHER_CFLAGS = $(inherited) -isystem "${PODS_ROOT}/Headers/Public" -isystem "${PODS_ROOT}/Headers/Public/UICKeyChainStore" -isystem "${PODS_ROOT}/Headers/Public/WJCacheAPI" -isystem "${PODS_ROOT}/Headers/Public/WJCacheKeychain" -isystem "${PODS_ROOT}/Headers/Public/WJCommon" -isystem "${PODS_ROOT}/Headers/Public/WJConfig" -isystem "${PODS_ROOT}/Headers/Public/WJJSON" -isystem "${PODS_ROOT}/Headers/Public/WJLoggingAPI"
+OTHER_LDFLAGS = $(inherited) -ObjC -l"UICKeyChainStore" -l"WJCacheAPI" -l"WJCacheKeychain" -l"WJCommon" -l"WJConfig" -l"WJJSON" -l"WJLoggingAPI" -framework "CoreGraphics" -framework "Foundation" -framework "Security" -framework "UIKit"
+PODS_BUILD_DIR = $BUILD_DIR
+PODS_CONFIGURATION_BUILD_DIR = $PODS_BUILD_DIR/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)
+PODS_ROOT = ${SRCROOT}/Pods

@@ -1,0 +1,16 @@
+source 'https://github.com/CocoaPods/Specs.git'
+source 'http://gitlab.jucaicat.net/iOS-Framework/Specs.git'
+
+platform :ios, '7.0'
+
+inhibit_all_warnings!
+
+target :'WJAppContext-example' do
+
+pod 'WJCacheKeychain'
+pod 'WJCommon/Core'
+pod 'WJCommon/Utils'
+
+pod 'WJConfig'
+
+end
