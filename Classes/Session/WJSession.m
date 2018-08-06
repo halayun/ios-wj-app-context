@@ -19,13 +19,14 @@
 #import "WJCacheAPI.h"
 #import "WJConfig.h"
 #import "ISessionTokenFormatter.h"
+#import "WJCommon.h"
 
 NSString * const UserLoginedNotification = @"UserLoginedNotification";
 
 NSString * const UserLogoutNotification = @"UserLogoutNotification";
 
-#define KEYCHAIN_STORE_TOKEN_KEY            @"appTokenKey"
-#define USERDEFAULTS_STORE_DATA_SAFE_KEY    @"dataSafeKey"
+#define WJ_SESSION_KEYCHAIN_STORE_TOKEN_KEY            @"appTokenKey"
+#define WJ_SESSION_USERDEFAULTS_STORE_DATA_SAFE_KEY    @"dataSafeKey"
 
 @interface WJSession ()
 @property (nonatomic, copy) id<IWJToken> token;
@@ -33,6 +34,7 @@ NSString * const UserLogoutNotification = @"UserLogoutNotification";
 @property (nonatomic, weak) id<IWJCache> keychainCache;
 @property (nonatomic, weak) id<IWJCache> userDefaultsCache;
 @property (nonatomic, strong) id<ISessionTokenFormatter> sessionTokenFormatter;
+@property(nonatomic) dispatch_queue_t storage_queue;
 @end
 
 @implementation WJSession
@@ -40,30 +42,35 @@ NSString * const UserLogoutNotification = @"UserLogoutNotification";
 DEF_SINGLETON_INIT(WJSession)
 
 -(void) deleteStorage {
-    [self.keychainCache removeObjectForKey:KEYCHAIN_STORE_TOKEN_KEY];
-    [self.userDefaultsCache removeObjectForKey:USERDEFAULTS_STORE_DATA_SAFE_KEY];
+    WJ_WEAK_REF_TYPE weakSelf = self;
+    dispatch_async(_storage_queue, ^{
+        [weakSelf.keychainCache removeObjectForKey:WJ_SESSION_KEYCHAIN_STORE_TOKEN_KEY];
+        [weakSelf.userDefaultsCache removeObjectForKey:WJ_SESSION_USERDEFAULTS_STORE_DATA_SAFE_KEY];
+    });
 }
 
 -(void) syncStorage {
-    if (_token) {
-        NSData *tokenData = [_sessionTokenFormatter toData:_token];
-        if (tokenData) [self.keychainCache setData:tokenData forKey:KEYCHAIN_STORE_TOKEN_KEY];
-        //保存数据安全key到userdefaults
-        if ([self.token dataSafeKey]) [self.userDefaultsCache setString:[self.token dataSafeKey] forKey:USERDEFAULTS_STORE_DATA_SAFE_KEY];
-    }
+    WJ_WEAK_REF_TYPE weakSelf = self;
+    dispatch_async(_storage_queue, ^{
+        if (weakSelf.token) {
+            NSData *tokenData = [_sessionTokenFormatter toData:weakSelf.token];
+            if (tokenData) [weakSelf.keychainCache setData:tokenData forKey:WJ_SESSION_KEYCHAIN_STORE_TOKEN_KEY];
+            if ([weakSelf.token dataSafeKey]) [weakSelf.userDefaultsCache setString:[weakSelf.token dataSafeKey] forKey:WJ_SESSION_USERDEFAULTS_STORE_DATA_SAFE_KEY];//保存数据安全key到userdefaults
+        }
+    });
 }
 
 -(void) loadStorage {
-    if ([self.keychainCache hasObjectForKey:KEYCHAIN_STORE_TOKEN_KEY]) {
-        NSData *tokenData = [self.keychainCache dataForKey:KEYCHAIN_STORE_TOKEN_KEY];
+    if ([self.keychainCache hasObjectForKey:WJ_SESSION_KEYCHAIN_STORE_TOKEN_KEY]) {
+        NSData *tokenData = [self.keychainCache dataForKey:WJ_SESSION_KEYCHAIN_STORE_TOKEN_KEY];
         if (tokenData) {
             id<IWJToken> tokenValue = [_sessionTokenFormatter toToken:tokenData];
-            NSString *dataSafeKey = [_userDefaultsCache stringForKey:USERDEFAULTS_STORE_DATA_SAFE_KEY];
+            NSString *dataSafeKey = [_userDefaultsCache stringForKey:WJ_SESSION_USERDEFAULTS_STORE_DATA_SAFE_KEY];
             if (WJ_STRING_EQUAL(dataSafeKey, [tokenValue dataSafeKey])) {
                 self.token = tokenValue;
             } else {
                 self.token = nil;
-                [self.keychainCache removeObjectForKey:KEYCHAIN_STORE_TOKEN_KEY];
+                [self deleteStorage];
             }
         }
     }
@@ -87,6 +94,8 @@ DEF_SINGLETON_INIT(WJSession)
  *  初始化方法
  */
 -(void) singleInit {
+    _storage_queue = dispatch_queue_create("wj_session_storage_queue", DISPATCH_QUEUE_SERIAL);
+    
     if (WJ_CACHE_IS_VALID(WJCacheTypeKeychain)) {
         self.keychainCache = WJ_CACHE_OBJECT(WJCacheTypeKeychain);
     } else {
